@@ -60,16 +60,24 @@
 
    ![](Images/image000037.png)
 
-10.  Look across all previously generated figures and tables and write at least three observations or inferences that can be made from the data. Include these observations at the top of notebook.
+10. Look across all previously generated figures and tables and write at least three observations or inferences that can be made from the data. Include these observations at the top of notebook.
 
-    - a.) Observation 1: Rat tumor size correlates with mouse weight, and it's statistically significant
+    1. Observation 1: Rat tumor size correlates with mouse weight, and it's statistically significant
 
-      ![](Images/image000037.png)
+       ![](Images/image000037.png)
 
-    - b.) Observation 2: Capomulin and Ramicane were the only treatments that on average decreased tumor size.
+    2. Observation 2: Capomulin and Ramicane were the only treatments that on average decreased tumor size.
 
-      ![](Images/image000025.png)
+       
 
-    - c.) Observation 3: Mouse 'c326' was an outlier in the Infubinol group when doing the box and whisker plots.  It looks like the last timepoint was 5.. Did the mouse die?
+       ![](Images/image000025.png)
 
-      ![](Images/image000032.png)
+    3. Observation 3: Mouse 'c326' was an outlier in the Infubinol group when doing the box and whisker plots.  It looks like the last timepoint was 5.. Did the mouse die?
+
+       ![](Images/image000032.png)
+
+    
+
+    
+
+    
