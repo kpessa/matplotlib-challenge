@@ -25,13 +25,16 @@ def show_tasks_dropdown(dropdown,df=src.get_raw_data()):
             display(generate_a_summary_table())
         elif change.new == "3a. Generate a plot using Panda's dataframe .plot() that shows the total mice for each treatment regimen":
             drug_grp = src.get_last_instance_data().groupby(by="Drug Regimen")
-            display(
-                drug_grp['Mouse ID'].count().plot(kind="bar", title="Total mice for each treatment regimen")
-            )
+            drug_grp['Mouse ID'].count().plot(kind="bar", title="Total mice for each treatment regimen")
+            plt.ylabel("Mice Count")
+            plt.xticks(rotation=45)
+            plt.show()
+            display()
         elif change.new == "3b. Generate a plot using Matplotlib's pyplot that shows the total mice for each treatment regimen":
             drug_grp = src.get_last_instance_data().groupby(by="Drug Regimen")
             plt.bar(drug_grp.groups.keys(),drug_grp['Mouse ID'].count())
             plt.xticks(rotation=45)
+            plt.ylabel("Mice Count")
             plt.title("Total mice for each treatment regimen")
             display()    
         elif change.new == "4a. Generate a pie plot using Panda's dataframe .plot() that shows the distribution of female or male mice in the study":
@@ -49,43 +52,45 @@ def show_tasks_dropdown(dropdown,df=src.get_raw_data()):
             display(df)
         elif change.new == "6a. Calculate the quartiles and IQR and quantitatively determine if there are any potential outliers across all four treatment regimens.":
             df = src.get_four_promising_treatments()
-            [Q1, Q3] = sts.mstats.idealfourths(df['Final Tumor Volume (mm3)'])
-            IQR = Q3 - Q1
-            lower_bound = Q1 - 1.5 * IQR
-            upper_bound = Q3 + 1.5 * IQR
-
-            filt = ((df['Final Tumor Volume (mm3)']<lower_bound)|(df['Final Tumor Volume (mm3)']>upper_bound))
-            print(df['Final Tumor Volume (mm3)'][filt])
-
-            plt.hist(df['Final Tumor Volume (mm3)'],color="grey",label="histogram of 4 treatment group's final tumor volume",alpha=0.5)
-            plt.axvline(x=Q1,ymax=20,label=f"Q1: {Q1:.1f}",color='black')
-            plt.axvline(x=Q3,ymax=20,label=f"Q3: {Q3:.1f}",color='black')
-            plt.hlines(y=2.5,xmin=Q1,xmax=Q3,label=f"IQR: {IQR:.1f}",color='orange')
-            plt.axvline(x=lower_bound,ymax=20,label=f"lower_bound: {lower_bound:.1f}",color='blue')
-            plt.axvline(x=upper_bound,ymax=20,label=f"upper_bound: {upper_bound:.1f}",color='red')
-            plt.legend()
-            plt.show()
-
-            display(
-                pd.DataFrame({
-                    "LowerB": [lower_bound],
-                    "Min" : [df['Final Tumor Volume (mm3)'].min()],
-                    "Q1" : [Q1],
-                    "Median" : [df['Final Tumor Volume (mm3)'].median()],
-                    "Q3" : [Q3],
-                    "Max" : [df['Final Tumor Volume (mm3)'].max()],
-                    "UpperB" : [upper_bound]
-                }).style.format({"LowerB":"{:.1f}",
-                                "Min":"{:.1f}",
-                                "Q1":"{:.1f}",
-                                "Median":"{:.1f}",
-                                "Q3":"{:.1f}",
-                                "Max":"{:.1f}",
-                                "UpperB": "{:.1f}"})
-            )
+            grps = df.groupby("Drug Regimen")
+            summary_df = pd.DataFrame({},columns=["Name","LowerB","Min","Q1","IQR","Q3","Max","UpperB"])
+            outliers = []
+            for name, grp in grps:
+                
+                arr = grp['Final Tumor Volume (mm3)']
+                
+                [Q1, Q3] = sts.mstats.idealfourths(arr)
+                IQR = sts.iqr(arr)
+                lower_bound = Q1 - 1.5 * IQR
+                upper_bound = Q3 + 1.5 * IQR
+                
+                df_row = pd.DataFrame({
+                                "Name" : [name],
+                                "LowerB": [f"{lower_bound:.1f}"],
+                                "Min" : [f"{arr.min():.1f}"],
+                                "Q1" : [f"{Q1:.1f}"],
+                                "IQR" : [f"{IQR:.1f}"],
+                                "Q3" : [f"{Q3:.1f}"],
+                                "Max" : [f"{arr.max():.1f}"],
+                                "UpperB" : [f"{upper_bound:.1f}"]
+                            })
+                
+                summary_df = summary_df.append(df_row)
+                
+                filt = ((arr < lower_bound) | (arr > upper_bound))
+                if len(arr[filt]) > 0:
+                    outliers.append(arr[filt])
+                        
+            print(outliers)
+            
+            display(summary_df.set_index("Name"))
         elif change.new == "6b. Using Matplotlib, generate a box and whisker plot of the final tumor volume for all four treatment regimens and highlight any potential outliers in the plot by changing their color and style.":
             exercise6b()
-            display()
+            df = src.get_last_instance_data()
+            filt = df["Drug Regimen"]=="Infubinol"
+            df = df[filt].rename(columns={"Tumor Volume (mm3)":"Final Tumor Volume (mm3)"})
+        
+            display(df.loc[669])
         elif change.new == "7. Select a mouse that was treated with Capomulin and generate a line plot of time point versus tumor volume for that mouse.":
             df = src.get_raw_data()
             filt = df["Drug Regimen"] == "Capomulin"
@@ -134,7 +139,6 @@ def show_tasks_dropdown(dropdown,df=src.get_raw_data()):
             df = src.get_last_instance_data()
             filt = df["Drug Regimen"]=="Infubinol"
             df = df[filt].rename(columns={"Tumor Volume (mm3)":"Final Tumor Volume (mm3)"})
-            
             display(df.loc[669])
     dropdown.observe(dropdown_eventhandler, names='value')
 
@@ -148,6 +152,7 @@ def exercise6b():
     ax.set_title("Box and whisker plot for 4 promising treatments")
     plt.show()
 
+    
 def exercise9():
                 df = src.get_mouse_metadata()
                 filt = df["Drug Regimen"] == "Capomulin"
@@ -201,3 +206,40 @@ def generate_a_summary_table():
     styler.format({'Starting Volume': "{:.1f}", 'Mean': "{:.1f}", '% Change': "{:.1f}%", 'Median': "{:.1f}", 'Variance': "{:.1f}", 'Standard Deviation': "{:.2f}", 'SEM': "{:.2f}"})    
 
     return styler
+
+def old_exercise6a():
+    df = src.get_four_promising_treatments()
+    [Q1, Q3] = sts.mstats.idealfourths(df['Final Tumor Volume (mm3)'])
+    IQR = Q3 - Q1
+    lower_bound = Q1 - 1.5 * IQR
+    upper_bound = Q3 + 1.5 * IQR
+
+    filt = ((df['Final Tumor Volume (mm3)']<lower_bound)|(df['Final Tumor Volume (mm3)']>upper_bound))
+    print(df['Final Tumor Volume (mm3)'][filt])
+
+    plt.hist(df['Final Tumor Volume (mm3)'],color="grey",label="histogram of 4 treatment group's final tumor volume",alpha=0.5)
+    plt.axvline(x=Q1,ymax=20,label=f"Q1: {Q1:.1f}",color='black')
+    plt.axvline(x=Q3,ymax=20,label=f"Q3: {Q3:.1f}",color='black')
+    plt.hlines(y=2.5,xmin=Q1,xmax=Q3,label=f"IQR: {IQR:.1f}",color='orange')
+    plt.axvline(x=lower_bound,ymax=20,label=f"lower_bound: {lower_bound:.1f}",color='blue')
+    plt.axvline(x=upper_bound,ymax=20,label=f"upper_bound: {upper_bound:.1f}",color='red')
+    plt.legend()
+    plt.show()
+
+    display(
+        pd.DataFrame({
+            "LowerB": [lower_bound],
+            "Min" : [df['Final Tumor Volume (mm3)'].min()],
+            "Q1" : [Q1],
+            "Median" : [df['Final Tumor Volume (mm3)'].median()],
+            "Q3" : [Q3],
+            "Max" : [df['Final Tumor Volume (mm3)'].max()],
+            "UpperB" : [upper_bound]
+        }).style.format({"LowerB":"{:.1f}",
+                        "Min":"{:.1f}",
+                        "Q1":"{:.1f}",
+                        "Median":"{:.1f}",
+                        "Q3":"{:.1f}",
+                        "Max":"{:.1f}",
+                        "UpperB": "{:.1f}"})
+    )
