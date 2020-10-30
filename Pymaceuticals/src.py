@@ -14,6 +14,7 @@ from IPython.display import clear_output
 
 global df
 
+
 def get_df_from_dropdown(value):
     if value == "mouse metadata":
         return get_mouse_metadata()
@@ -28,8 +29,9 @@ def get_df_from_dropdown(value):
     elif value == "promising treatments":
         return get_four_promising_treatments()
 
+
 def show_dataset_dropdown(dropdown):
-    
+
     display(dropdown)
 
     def dropdown_eventhandler(change):
@@ -49,15 +51,16 @@ def show_dataset_dropdown(dropdown):
         elif change.new == "promising treatments":
             df = get_four_promising_treatments()
             display(df)
-        
+
     dropdown.observe(dropdown_eventhandler, names='value')
-    
+
 
 def get_mouse_metadata():
     """Returns the mouse data"""
     mouse_metadata_path = "data/Mouse_metadata.csv"
     df = pd.read_csv(mouse_metadata_path)
     return df
+
 
 def get_study_results():
     """Returns the study results"""
@@ -66,19 +69,26 @@ def get_study_results():
     return df
 
 # Functions to get different dataframes for analysis
+
+
 def get_raw_data():
-    df = pd.merge(get_mouse_metadata(),get_study_results(),on='Mouse ID',how='outer')
-    df.drop_duplicates(keep='first',inplace=True)
+    df = pd.merge(get_mouse_metadata(), get_study_results(),
+                  on='Mouse ID', how='outer')
+    df.drop_duplicates(keep='first', inplace=True)
     return df
+
 
 def get_last_instance_data():
-    df = get_raw_data().drop_duplicates('Mouse ID',keep='last')
+    df = get_raw_data().drop_duplicates('Mouse ID', keep='last')
     return df
+
 
 def get_first_instance_data():
-    df = get_raw_data().drop_duplicates('Mouse ID',keep='first') 
+    df = get_raw_data().drop_duplicates('Mouse ID', keep='first')
     return df
 
+
 def get_four_promising_treatments():
-    df = get_last_instance_data().set_index('Drug Regimen').loc[["Capomulin","Ramicane","Infubinol","Ceftamin"]].rename(columns={"Tumor Volume (mm3)":"Final Tumor Volume (mm3)"})[["Mouse ID","Sex","Final Tumor Volume (mm3)"]]
+    df = get_last_instance_data().set_index('Drug Regimen').loc[["Capomulin", "Ramicane", "Infubinol", "Ceftamin"]].rename(
+        columns={"Tumor Volume (mm3)": "Final Tumor Volume (mm3)"})[["Mouse ID", "Sex", "Final Tumor Volume (mm3)"]]
     return df
