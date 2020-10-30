@@ -1,7 +1,6 @@
 # Matplotlib Challenge
 
-- Can run exercises in `matplotlib-challenge.ipynb`
-  - May have to use Jupyter Notebook and not Jupyter lab because I encapsulated exercises in a ipywidget dropdown.
+- Can run exercises in `Pymaceuticals/matplotlib-challenge.ipynb`
 - Code for exercises is in `exercises.py`
 - Code for selecting different data frames is abstracted to `src.py`
 
